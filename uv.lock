@@ -57,12 +57,16 @@ name = "blendsphere-backend"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "dotenv" },
+    { name = "fastapi" },
     { name = "pydantic" },
     { name = "pydantic-ai" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "fastapi", specifier = ">=0.115.12" },
     { name = "pydantic", specifier = ">=2.11.4" },
     { name = "pydantic-ai", specifier = ">=0.2.6" },
 ]
@@ -211,6 +215,17 @@ wheels = [
 ]
 
 [[package]]
+name = "dotenv"
+version = "0.9.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dotenv" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b2/b7/545d2c10c1fc15e48653c91efde329a790f2eecfbbf2bd16003b5db2bab0/dotenv-0.9.9-py2.py3-none-any.whl", hash = "sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9", size = 1892 },
+]
+
+[[package]]
 name = "eval-type-backport"
 version = "0.2.2"
 source = { registry = "https://pypi.org/simple" }
@@ -231,6 +246,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/6b/c1/034e08be97b3c3a4e8b98ddf4df4eb458a4e33e9a016a2453e593d1b3f1e/fasta2a-0.2.6.tar.gz", hash = "sha256:9092146b0f701166f50f42beb071cfc6781ea0272969cb90b5908ffaeba2c45a", size = 12283 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/45/3e/28d8f77fbd185fbf643819a121be0f851db7a2a46c35327d650288a6d469/fasta2a-0.2.6-py3-none-any.whl", hash = "sha256:4530c4fbea418e5a91acede56910101fffb086cd8a59c52b28e29d75a0a9f7e7", size = 15328 },
+]
+
+[[package]]
+name = "fastapi"
+version = "0.115.12"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "starlette" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f4/55/ae499352d82338331ca1e28c7f4a63bfd09479b16395dce38cf50a39e2c2/fastapi-0.115.12.tar.gz", hash = "sha256:1e2c2a2646905f9e83d32f04a3f86aff4a286669c6c950ca95b5fd68c2602681", size = 295236 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/50/b3/b51f09c2ba432a576fe63758bddc81f78f0c6309d9e5c10d194313bf021e/fastapi-0.115.12-py3-none-any.whl", hash = "sha256:e94613d6c05e27be7ffebdd6ea5f388112e5e430c8f7d6494a9d1d88d43e814d", size = 95164 },
 ]
 
 [[package]]
