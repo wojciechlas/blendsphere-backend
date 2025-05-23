@@ -16,5 +16,4 @@ async def health():
 
 @app.post("/flashcards")
 async def generate_flashcards(request: FlashcardRequest):
-    print("Entered /flashcards")
     return await agent.generate_flashcards(request)

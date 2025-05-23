@@ -25,14 +25,10 @@ class FlashcardAgent:
               - "value": value of the field, generated based on the template and inputs
             """
 
-        print(system_prompt)
-
         self.agent = Agent(
             model="google-gla:gemini-2.0-flash",
             system_prompt=system_prompt
         )
-
-        print("Agent created")
 
         self.flashcard_template = Template("""
         {
@@ -71,8 +67,6 @@ class FlashcardAgent:
                 }
             ]
         }""")
-
-        print(f"Template used: {self.flashcard_template}")
 
     async def generate_flashcards(self, template):
         print("pre-generation")
