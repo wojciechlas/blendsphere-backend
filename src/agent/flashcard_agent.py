@@ -1,4 +1,5 @@
 from pydantic_ai import Agent
+from string import Template
 
 class FlashcardAgent:
 
@@ -33,7 +34,7 @@ class FlashcardAgent:
 
         print("Agent created")
 
-        self.flashcard_template = """
+        self.flashcard_template = Template("""
         {
             "nativeLanguage": "pl",
             "learningLanguage": "en",
@@ -50,11 +51,7 @@ class FlashcardAgent:
                     "language": "en",
                     "label": "Word",
                     "description": "Word in English",
-                    "inputs": [
-                        "break",
-                        "drive",
-                        "grow"
-                    ]
+                    "inputs": $inputs
                 },
                 {
                     "id": 2,
@@ -73,12 +70,12 @@ class FlashcardAgent:
                     "inputs": []
                 }
             ]
-        }"""
+        }""")
 
         print(f"Template used: {self.flashcard_template}")
 
     async def generate_flashcards(self, template):
         print("pre-generation")
-        response = await self.agent.run(self.flashcard_template)
+        response = await self.agent.run(self.flashcard_template.safe_substitute(inputs=template.words))
         print("post-generation")
         return response.output
