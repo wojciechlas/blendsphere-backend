@@ -7,4 +7,5 @@ requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.11.4",
     "pydantic-ai>=0.2.6",
+    "peewee>=3.17.0",
 ]
