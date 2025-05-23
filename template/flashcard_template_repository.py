@@ -3,7 +3,7 @@ from peewee import (
     SqliteDatabase
 )
 
-from flashcard_template_models import FlashcardTemplate, FlashcardField
+from template.flashcard_template_models import FlashcardTemplate, FlashcardField
 
 db = SqliteDatabase('flashcards.db')
 
