@@ -3,7 +3,7 @@ from peewee import (
     SqliteDatabase
 )
 
-from template.flashcard_template_models import FlashcardTemplate, FlashcardField
+from src.template.flashcard_template_models import FlashcardTemplate, FlashcardField
 
 db = SqliteDatabase('flashcards.db')
 
@@ -36,9 +36,11 @@ class FlashcardFieldRecord(Entity):
 
 import json
 
-def init_db():
+def init_db(db_path: str = "flashcards.db"):
+    db.init(db_path)
     db.connect()
     db.create_tables([FlashcardTemplateRecord, FlashcardFieldRecord], safe=True)
+
 
 def create_flashcard_template(data: FlashcardTemplate) -> int:
     template = FlashcardTemplateRecord.create(
