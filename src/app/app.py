@@ -1,6 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from src.agent.flashcard_agent import FlashcardAgent
 from src.model.flashcard_request import FlashcardRequest
+
+from src.template import flashcard_template_models as models
+from src.template import flashcard_template_repository as repository
 
 app = FastAPI()
 
@@ -23,3 +26,32 @@ async def health():
 @app.post("/flashcards")
 async def generate_flashcards(request: FlashcardRequest):
     return await agent.generate_flashcards(request)
+
+
+@app.post("/", response_model=int)
+def create_flashcard_template(template: models.FlashcardTemplate):
+    return repository.create_flashcard_template(template)
+
+
+@app.get("/{template_id}", response_model=models.FlashcardTemplate)
+def get_flashcard_template_by_id(template_id: int):
+    template = repository.get_flashcard_template(template_id)
+    if template is None:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return template
+
+
+@app.put("/{template_id}", response_model=models.FlashcardTemplate)
+def update_flashcard_template(template_id: int, template: models.FlashcardTemplate):
+    updated = repository.update_flashcard_template(template_id, template)
+    if updated is None:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return updated
+
+
+@app.delete("/{template_id}", response_model=models.FlashcardTemplate)
+def delete_flashcard_template(template_id: int):
+    deleted = repository.delete_flashcard_template(template_id)
+    if deleted is None:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return deleted
