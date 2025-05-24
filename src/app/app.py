@@ -4,6 +4,12 @@ from src.model.flashcard_request import FlashcardRequest
 
 app = FastAPI()
 
+
+# router = APIRouter(
+#     prefix="/flashcard-generator",
+#     tags=["flashcard-generator"]
+# )
+
 agent = FlashcardAgent()
 
 @app.get("/")
