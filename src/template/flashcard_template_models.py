@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Optional
+
 
 class FlashcardField(BaseModel):
     id: int
@@ -8,6 +9,7 @@ class FlashcardField(BaseModel):
     language: str
     label: str
     description: str
+    inputs: List[str]
 
 class FlashcardTemplate(BaseModel):
     name: str
@@ -23,3 +25,4 @@ class FlashcardTemplate(BaseModel):
     fields: List[FlashcardField]
     front: str
     back: str
+

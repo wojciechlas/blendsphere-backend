@@ -8,12 +8,6 @@ from src.template import flashcard_template_repository as repository
 
 app = FastAPI()
 
-
-# router = APIRouter(
-#     prefix="/flashcard-generator",
-#     tags=["flashcard-generator"]
-# )
-
 init_db()
 agent = FlashcardAgent()
 

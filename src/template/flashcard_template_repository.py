@@ -50,7 +50,8 @@ class FlashcardFieldRecord(Entity):
     isInput = BooleanField()
     language = CharField()
     label = CharField()
-    description = TextField()
+    description = TextField(),
+    inputs: TextField()
 
 
 import json
@@ -83,7 +84,8 @@ def create_flashcard_template(data: FlashcardTemplate) -> int:
             isInput=field.isInput,
             language=field.language,
             label=field.label,
-            description=field.description
+            description=field.description,
+            inputs=json.dumps(data.inputs)
         )
     return template.id
 
@@ -98,7 +100,9 @@ def get_flashcard_template(template_id: int) -> FlashcardTemplate | None:
                 isInput=field.isInput,
                 language=field.language,
                 label=field.label,
-                description=field.description
+                description=field.description,
+                inputs=json.loads(field.inputs) if field.inputs else []
+
             )
             for field in template.fields
         ]
@@ -161,6 +165,3 @@ def delete_flashcard_template(template_id: int) -> bool:
     except FlashcardTemplateRecord.DoesNotExist:
         return False
 
-
-if __name__ == "__main__":
-    init_db()
