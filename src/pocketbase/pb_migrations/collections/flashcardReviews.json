@@ -1,7 +1,7 @@
 {
     "id": "pbc_flashcard_reviews",
-    "listRule": "flashcard.deck.user = @request.auth.id || flashcard.deck.class.enrollments_via_class.student ?= @request.auth.id",
-    "viewRule": "flashcard.deck.user = @request.auth.id || flashcard.deck.class.enrollments_via_class.student ?= @request.auth.id",
+    "listRule": "flashcard.deck.user = @request.auth.id || flashcard.deck.class.classEnrollments_via_class.student ?= @request.auth.id",
+    "viewRule": "flashcard.deck.user = @request.auth.id || flashcard.deck.class.classEnrollments_via_class.student ?= @request.auth.id",
     "createRule": "@request.auth.id != ''",
     "updateRule": "flashcard.deck.user = @request.auth.id",
     "deleteRule": "flashcard.deck.user = @request.auth.id",

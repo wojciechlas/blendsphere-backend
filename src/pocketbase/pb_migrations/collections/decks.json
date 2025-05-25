@@ -1,7 +1,7 @@
 {
     "id": "pbc_decks",
-    "listRule": "isPublic = true || user = @request.auth.id || (class != '' && class.enrollments_via_class.student ?= @request.auth.id)",
-    "viewRule": "isPublic = true || user = @request.auth.id || (class != '' && class.enrollments_via_class.student ?= @request.auth.id)",
+    "listRule": "isPublic = true || user = @request.auth.id || (class != '' && class.classEnrollments_via_class.student ?= @request.auth.id)",
+    "viewRule": "isPublic = true || user = @request.auth.id || (class != '' && class.classEnrollments_via_class.student ?= @request.auth.id)",
     "createRule": "@request.auth.id != ''",
     "updateRule": "user = @request.auth.id || (class != '' && class.teacher = @request.auth.id)",
     "deleteRule": "user = @request.auth.id || (class != '' && class.teacher = @request.auth.id)",

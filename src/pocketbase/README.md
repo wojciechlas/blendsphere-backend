@@ -28,8 +28,10 @@ After PocketBase starts, you have two options to import the schema:
 1. Open http://127.0.0.1:8090/_/ in your browser
 2. Create your admin account when prompted
 3. Go to **Settings** → **Import collections**
-4. Upload the file: `pb_migrations/pb_schema_complete.json`
+4. Upload the file: `pb_migrations/consolidated_schema.json`
 5. Click **Import** to create all collections
+
+> 📋 **Detailed Instructions**: See [IMPORT_GUIDE.md](IMPORT_GUIDE.md) for complete import instructions and troubleshooting.
 
 #### Option B: Import via Script
 ```bash
@@ -105,7 +107,7 @@ cd pb_migrations
 
 ### Method 1: Complete Schema Import (Recommended)
 
-This method imports all 21 collections at once:
+This method imports all 21 collections at once using the consolidated schema:
 
 1. **Prepare the Schema**:
    ```bash
@@ -124,7 +126,7 @@ This method imports all 21 collections at once:
 3. **Import in Admin Dashboard**:
    - In the admin dashboard, click the **Settings** gear icon (⚙️)
    - Select **Import collections** from the sidebar
-   - Click **Choose file** and select: `pb_migrations/pb_schema_complete.json`
+   - Click **Choose file** and select: `pb_migrations/consolidated_schema.json`
    - Review the preview (should show 21 collections)
    - Click **Import** button
    - Wait for confirmation message
@@ -134,9 +136,30 @@ This method imports all 21 collections at once:
    - You should see all 21 collections listed
    - Check a few collections to ensure fields are properly imported
 
-### Method 2: Manual Collection Creation
+### Method 1B: Manual Consolidated Schema Import
 
-If you prefer to create collections individually:
+If you prefer to copy-paste the schema directly:
+
+1. **Open the Schema File**:
+   ```bash
+   cat pb_migrations/consolidated_schema.json
+   ```
+
+2. **Copy the JSON Content**:
+   - Select all content from the file (it should be a JSON array)
+   - Copy to clipboard
+
+3. **Import via Dashboard**:
+   - In admin dashboard: **Settings** → **Import collections**
+   - Click **Load from JSON**
+   - Paste the copied JSON content
+   - Click **Review import**
+   - Verify all 21 collections are listed
+   - Click **Import**
+
+### Method 2: Individual Collection Import
+
+If you need to import collections one by one or if the consolidated import fails:
 
 1. **Access Collections**:
    - In admin dashboard, go to **Collections** tab
@@ -147,26 +170,81 @@ If you prefer to create collections individually:
    - Copy content from individual files in `pb_migrations/collections/`
    - Paste and click **Create**
 
-3. **Import Order** (recommended):
-   - System collections first: `_authOrigins`, `_externalAuths`, etc.
-   - Core collections: `users`, `templates`, `fields`, etc.
-   - Dependent collections: `decks`, `flashcards`, etc.
+3. **Import Order** (IMPORTANT - import in this order to avoid relation errors):
+   ```bash
+   # 1. System collections first
+   _authOrigins.json
+   _superusers.json
+   
+   # 2. Users collection (required for relations)
+   users.json
+   
+   # 3. Core collections without dependencies
+   templates.json
+   aiPrompts.json
+   
+   # 4. Collections with user relations
+   fields.json
+   classes.json
+   
+   # 5. Collections with class relations
+   classEnrollments.json  # Creates classEnrollments_via_class back relation
+   
+   # 6. Collections that depend on classes and enrollments
+   decks.json
+   lessons.json
+   posts.json
+   
+   # 7. Collections that depend on previous collections
+   flashcards.json
+   studySessions.json
+   comments.json
+   reactions.json
+   flashcardReviews.json
+   ```
+
+### Method 3: Command Line Import (Advanced)
+
+If you prefer using scripts:
+
+```bash
+cd pb_migrations
+./import_collections.sh --all
+```
 
 ### Troubleshooting Import
 
+**Import fails with "failed to load back relation field" errors**:
+- This occurs when collections reference relations that don't exist yet
+- **Solution**: Import collections in the correct order (see Method 2 above)
+- **Quick Fix**: Import `classEnrollments.json` before any collections that reference `classEnrollments_via_class`
+
 **Import fails with validation errors**:
 - Ensure PocketBase is the latest version (v0.28.2+)
-- Check JSON validity: `cat pb_migrations/pb_schema_complete.json | jq .`
+- Check JSON validity: `cat pb_migrations/consolidated_schema.json | jq .`
 - Try importing system collections first
+- Verify the file path is correct: `pb_migrations/consolidated_schema.json`
 
 **Collections appear but with missing fields**:
 - Re-import the specific collection
 - Check for special characters in field names
-- Verify field types are supported
+- Verify field types are supported in your PocketBase version
 
-**Access rule errors**:
-- Collections will import with basic access rules
+**Access rule errors during import**:
+- Collections will import with their defined access rules
+- If rules reference non-existent relations, import will fail
+- **Solution**: Import collections in dependency order
 - Review and adjust rules in **Collections** → **API Rules** as needed
+
+**"enrollments_via_class" relation errors**:
+- This error was fixed in May 2025 - use the latest schema files
+- The correct back relation name is `classEnrollments_via_class`
+- If you see this error, regenerate the schema: `./consolidate_schema.sh`
+
+**File not found errors**:
+- Ensure you're in the correct directory: `/src/pocketbase/`
+- Check file exists: `ls -la pb_migrations/consolidated_schema.json`
+- Regenerate if missing: `cd pb_migrations && ./consolidate_schema.sh`
 
 ## 🔗 Important URLs
 
@@ -324,7 +402,7 @@ cd pb_migrations
 ```
 
 ### Important Files
-- `pb_migrations/pb_schema_complete.json` - Complete schema for import
+- `pb_migrations/consolidated_schema.json` - Complete schema for import
 - `pb_migrations/collections/*.json` - Individual collection definitions
 - `pb_data/data.db` - Main SQLite database
 - `pb_data/types.d.ts` - Auto-generated TypeScript types

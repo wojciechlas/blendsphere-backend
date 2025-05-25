@@ -3,9 +3,9 @@
 # BlendSphere PocketBase Schema Consolidation Script
 # This script consolidates individual collection JSON files into a complete schema
 
-COLLECTIONS_DIR="/home/wlas/BlendSphere/pocketbase/pb_migrations/collections"
-OUTPUT_FILE="/home/wlas/BlendSphere/pocketbase/pb_migrations/pb_schema_complete.json"
-BACKUP_FILE="/home/wlas/BlendSphere/pocketbase/pb_migrations/pb_schema_backup.json"
+COLLECTIONS_DIR="$(dirname "$0")/collections"
+OUTPUT_FILE="$(dirname "$0")/consolidated_schema.json"
+BACKUP_FILE="$(dirname "$0")/consolidated_schema_backup.json"
 
 echo "🔄 Consolidating BlendSphere PocketBase schema..."
 

@@ -1,7 +1,7 @@
 {
     "id": "pbc_flashcards",
-    "listRule": "deck.user = @request.auth.id || deck.isPublic = true || (deck.class != '' && deck.class.enrollments_via_class.student ?= @request.auth.id)",
-    "viewRule": "deck.user = @request.auth.id || deck.isPublic = true || (deck.class != '' && deck.class.enrollments_via_class.student ?= @request.auth.id)",
+    "listRule": "deck.user = @request.auth.id || deck.isPublic = true || (deck.class != '' && deck.class.classEnrollments_via_class.student ?= @request.auth.id)",
+    "viewRule": "deck.user = @request.auth.id || deck.isPublic = true || (deck.class != '' && deck.class.classEnrollments_via_class.student ?= @request.auth.id)",
     "createRule": "deck.user = @request.auth.id || (deck.class != '' && deck.class.teacher = @request.auth.id)",
     "updateRule": "deck.user = @request.auth.id || (deck.class != '' && deck.class.teacher = @request.auth.id)",
     "deleteRule": "deck.user = @request.auth.id || (deck.class != '' && deck.class.teacher = @request.auth.id)",

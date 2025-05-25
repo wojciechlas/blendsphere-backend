@@ -16,8 +16,12 @@ Then in your browser:
 1. Go to http://127.0.0.1:8090/_/
 2. Create your admin account
 3. Go to **Settings** → **Import collections**
-4. Upload `pb_migrations/pb_schema_complete.json`
+4. Upload `pb_migrations/consolidated_schema.json`
 5. Click **Import**
+
+> **📋 Need Help?** See [IMPORT_GUIDE.md](IMPORT_GUIDE.md) for detailed import instructions and troubleshooting.
+
+> **⚠️ Import Issues?** If you get relation errors, the collections need to be imported in dependency order. The consolidated schema handles this automatically.
 
 ## 🔍 Verify Everything Works
 

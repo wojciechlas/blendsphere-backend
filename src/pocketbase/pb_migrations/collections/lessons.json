@@ -1,7 +1,7 @@
 {
     "id": "pbc_lessons",
-    "listRule": "class.teacher = @request.auth.id || class.enrollments_via_class.student ?= @request.auth.id",
-    "viewRule": "class.teacher = @request.auth.id || class.enrollments_via_class.student ?= @request.auth.id",
+    "listRule": "class.teacher = @request.auth.id || class.classEnrollments_via_class.student ?= @request.auth.id",
+    "viewRule": "class.teacher = @request.auth.id || class.classEnrollments_via_class.student ?= @request.auth.id",
     "createRule": "class.teacher = @request.auth.id",
     "updateRule": "class.teacher = @request.auth.id",
     "deleteRule": "class.teacher = @request.auth.id",
