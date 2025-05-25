@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from src.agent.flashcard_agent import FlashcardAgent
 from src.model.flashcard_request import FlashcardRequest
+from src.template.flashcard_template_repository import init_db
 
 from src.template import flashcard_template_models as models
 from src.template import flashcard_template_repository as repository
@@ -13,6 +14,7 @@ app = FastAPI()
 #     tags=["flashcard-generator"]
 # )
 
+init_db()
 agent = FlashcardAgent()
 
 @app.get("/")

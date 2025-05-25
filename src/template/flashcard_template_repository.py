@@ -1,11 +1,30 @@
 from peewee import (
     Model, CharField, TextField, BooleanField, ForeignKeyField,
-    SqliteDatabase
+    SqliteDatabase, _ConnectionState
 )
 
 from src.template.flashcard_template_models import FlashcardTemplate, FlashcardField
+from contextvars import ContextVar
 
-db = SqliteDatabase('flashcards.db')
+DATABASE_NAME = "flashcards.db"
+db_state_default = {"closed": None, "conn": None, "ctx": None, "transactions": None}
+db_state = ContextVar("db_state", default=db_state_default.copy())
+
+class PeeweeConnectionState(_ConnectionState):
+    def init(self, kwargs):
+        super().setattr("_state", db_state)
+        super().init(kwargs)
+
+    def setattr(self, name, value):
+        self._state.get()[name] = value
+
+    def getattr(self, name):
+        return self._state.get()[name]
+
+
+db = SqliteDatabase(DATABASE_NAME, check_same_thread=False)
+
+db._state = PeeweeConnectionState()
 
 class Entity(Model):
     class Meta:
