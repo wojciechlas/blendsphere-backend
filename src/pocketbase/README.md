@@ -203,15 +203,6 @@ If you need to import collections one by one or if the consolidated import fails
    flashcardReviews.json
    ```
 
-### Method 3: Command Line Import (Advanced)
-
-If you prefer using scripts:
-
-```bash
-cd pb_migrations
-./import_collections.sh --all
-```
-
 ### Troubleshooting Import
 
 **Import fails with "failed to load back relation field" errors**:
@@ -393,8 +384,6 @@ mv pb_data pb_data.backup
 # Schema management
 cd pb_migrations
 ./consolidate_schema.sh       # Rebuild complete schema
-./import_collections.sh --all # Import all collections
-./import_collections.sh --list # List available collections
 
 # Daily development
 ./run_pocketbase.sh           # Start PocketBase
