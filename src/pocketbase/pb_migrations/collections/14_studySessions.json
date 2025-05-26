@@ -1,11 +1,11 @@
 {
-    "id": "pbc_flashcard_reviews",
+    "id": "pbc_study_sessions",
     "listRule": "user = @request.auth.id",
     "viewRule": "user = @request.auth.id",
     "createRule": "@request.auth.id != ''",
     "updateRule": "user = @request.auth.id",
     "deleteRule": "user = @request.auth.id",
-    "name": "flashcardReviews",
+    "name": "studySessions",
     "type": "base",
     "fields": [
         {
@@ -23,32 +23,6 @@
             "type": "text"
         },
         {
-            "cascadeDelete": true,
-            "collectionId": "pbc_flashcards",
-            "hidden": false,
-            "id": "relation_flashcard",
-            "maxSelect": 1,
-            "minSelect": 1,
-            "name": "flashcard",
-            "presentable": false,
-            "required": true,
-            "system": false,
-            "type": "relation"
-        },
-        {
-            "cascadeDelete": false,
-            "collectionId": "pbc_study_sessions",
-            "hidden": false,
-            "id": "relation_session",
-            "maxSelect": 1,
-            "minSelect": 0,
-            "name": "session",
-            "presentable": false,
-            "required": false,
-            "system": false,
-            "type": "relation"
-        },
-        {
             "cascadeDelete": false,
             "collectionId": "_pb_users_auth_",
             "hidden": false,
@@ -62,27 +36,87 @@
             "type": "relation"
         },
         {
+            "cascadeDelete": false,
+            "collectionId": "pbc_decks",
             "hidden": false,
-            "id": "select_rating",
+            "id": "relation_deck",
             "maxSelect": 1,
-            "name": "rating",
+            "minSelect": 0,
+            "name": "deck",
+            "presentable": false,
+            "required": false,
+            "system": false,
+            "type": "relation"
+        },
+        {
+            "cascadeDelete": false,
+            "collectionId": "pbc_lessons",
+            "hidden": false,
+            "id": "relation_lesson",
+            "maxSelect": 1,
+            "minSelect": 0,
+            "name": "lesson",
+            "presentable": false,
+            "required": false,
+            "system": false,
+            "type": "relation"
+        },
+        {
+            "hidden": false,
+            "id": "select_type",
+            "maxSelect": 1,
+            "name": "type",
             "presentable": false,
             "required": true,
             "system": false,
             "type": "select",
             "values": [
-                "AGAIN",
-                "HARD",
-                "GOOD",
-                "EASY"
+                "REVIEW",
+                "NEW_CARDS",
+                "MIXED",
+                "LESSON"
             ]
         },
         {
             "hidden": false,
-            "id": "number_response_time_ms",
+            "id": "select_status",
+            "maxSelect": 1,
+            "name": "status",
+            "presentable": false,
+            "required": true,
+            "system": false,
+            "type": "select",
+            "values": [
+                "ACTIVE",
+                "COMPLETED",
+                "PAUSED",
+                "CANCELLED"
+            ]
+        },
+        {
+            "hidden": false,
+            "id": "date_start_time",
+            "name": "startTime",
+            "presentable": false,
+            "required": true,
+            "system": false,
+            "type": "date"
+        },
+        {
+            "hidden": false,
+            "id": "date_end_time",
+            "name": "endTime",
+            "presentable": false,
+            "required": false,
+            "system": false,
+            "type": "date"
+        },
+        {
+            "hidden": false,
+            "id": "number_duration_seconds",
             "max": null,
             "min": 0,
-            "name": "responseTimeMs",
+            "name": "durationSeconds",
             "onlyInt": true,
             "presentable": false,
             "required": false,
@@ -91,44 +125,11 @@
         },
         {
             "hidden": false,
-            "id": "date_review_time",
-            "name": "reviewTime",
-            "presentable": false,
-            "required": true,
-            "system": false,
-            "type": "date"
-        },
-        {
-            "hidden": false,
-            "id": "number_previous_difficulty",
-            "max": 10,
-            "min": 0,
-            "name": "previousDifficulty",
-            "onlyInt": false,
-            "presentable": false,
-            "required": false,
-            "system": false,
-            "type": "number"
-        },
-        {
-            "hidden": false,
-            "id": "number_new_difficulty",
-            "max": 10,
-            "min": 0,
-            "name": "newDifficulty",
-            "onlyInt": false,
-            "presentable": false,
-            "required": false,
-            "system": false,
-            "type": "number"
-        },
-        {
-            "hidden": false,
-            "id": "number_previous_stability",
+            "id": "number_cards_reviewed",
             "max": null,
             "min": 0,
-            "name": "previousStability",
-            "onlyInt": false,
+            "name": "cardsReviewed",
+            "onlyInt": true,
             "presentable": false,
             "required": false,
             "system": false,
@@ -136,11 +137,11 @@
         },
         {
             "hidden": false,
-            "id": "number_new_stability",
+            "id": "number_correct_answers",
             "max": null,
             "min": 0,
-            "name": "newStability",
-            "onlyInt": false,
+            "name": "correctAnswers",
+            "onlyInt": true,
             "presentable": false,
             "required": false,
             "system": false,
@@ -148,41 +149,21 @@
         },
         {
             "hidden": false,
-            "id": "select_previous_state",
-            "maxSelect": 1,
-            "name": "previousState",
+            "id": "number_incorrect_answers",
+            "max": null,
+            "min": 0,
+            "name": "incorrectAnswers",
+            "onlyInt": true,
             "presentable": false,
             "required": false,
             "system": false,
-            "type": "select",
-            "values": [
-                "NEW",
-                "LEARNING",
-                "REVIEW",
-                "RELEARNING"
-            ]
+            "type": "number"
         },
         {
             "hidden": false,
-            "id": "select_new_state",
-            "maxSelect": 1,
-            "name": "newState",
-            "presentable": false,
-            "required": false,
-            "system": false,
-            "type": "select",
-            "values": [
-                "NEW",
-                "LEARNING",
-                "REVIEW",
-                "RELEARNING"
-            ]
-        },
-        {
-            "hidden": false,
-            "id": "json_fsrs_data",
+            "id": "json_session_data",
             "maxSize": 0,
-            "name": "fsrsData",
+            "name": "sessionData",
             "presentable": false,
             "required": false,
             "system": false,
@@ -210,12 +191,11 @@
         }
     ],
     "indexes": [
-        "CREATE INDEX `idx_flashcard_reviews_flashcard` ON `flashcardReviews` (`flashcard`)",
-        "CREATE INDEX `idx_flashcard_reviews_user` ON `flashcardReviews` (`user`)",
-        "CREATE INDEX `idx_flashcard_reviews_session` ON `flashcardReviews` (`session`)",
-        "CREATE INDEX `idx_flashcard_reviews_rating` ON `flashcardReviews` (`rating`)",
-        "CREATE INDEX `idx_flashcard_reviews_review_time` ON `flashcardReviews` (`reviewTime`)",
-        "CREATE INDEX `idx_flashcard_reviews_state_change` ON `flashcardReviews` (`previousState`, `newState`)"
+        "CREATE INDEX `idx_study_sessions_user` ON `studySessions` (`user`)",
+        "CREATE INDEX `idx_study_sessions_deck` ON `studySessions` (`deck`)",
+        "CREATE INDEX `idx_study_sessions_lesson` ON `studySessions` (`lesson`)",
+        "CREATE INDEX `idx_study_sessions_status` ON `studySessions` (`status`)",
+        "CREATE INDEX `idx_study_sessions_start_time` ON `studySessions` (`startTime`)"
     ],
     "system": false
 }
