@@ -176,3 +176,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# PocketBase database
+src/pocketbase/pocketbase
+src/pocketbase/pb_data/
