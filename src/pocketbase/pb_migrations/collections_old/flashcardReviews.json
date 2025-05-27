@@ -1,10 +1,10 @@
 {
     "id": "pbc_flashcard_reviews",
-    "listRule": "flashcard.deck.user = @request.auth.id || flashcard.deck.class.classEnrollments_via_class.student ?= @request.auth.id",
-    "viewRule": "flashcard.deck.user = @request.auth.id || flashcard.deck.class.classEnrollments_via_class.student ?= @request.auth.id",
+    "listRule": "user = @request.auth.id",
+    "viewRule": "user = @request.auth.id",
     "createRule": "@request.auth.id != ''",
-    "updateRule": "flashcard.deck.user = @request.auth.id",
-    "deleteRule": "flashcard.deck.user = @request.auth.id",
+    "updateRule": "user = @request.auth.id",
+    "deleteRule": "user = @request.auth.id",
     "name": "flashcardReviews",
     "type": "base",
     "fields": [
@@ -45,6 +45,19 @@
             "name": "session",
             "presentable": false,
             "required": false,
+            "system": false,
+            "type": "relation"
+        },
+        {
+            "cascadeDelete": false,
+            "collectionId": "_pb_users_auth_",
+            "hidden": false,
+            "id": "relation_user",
+            "maxSelect": 1,
+            "minSelect": 1,
+            "name": "user",
+            "presentable": false,
+            "required": true,
             "system": false,
             "type": "relation"
         },
@@ -198,6 +211,7 @@
     ],
     "indexes": [
         "CREATE INDEX `idx_flashcard_reviews_flashcard` ON `flashcardReviews` (`flashcard`)",
+        "CREATE INDEX `idx_flashcard_reviews_user` ON `flashcardReviews` (`user`)",
         "CREATE INDEX `idx_flashcard_reviews_session` ON `flashcardReviews` (`session`)",
         "CREATE INDEX `idx_flashcard_reviews_rating` ON `flashcardReviews` (`rating`)",
         "CREATE INDEX `idx_flashcard_reviews_review_time` ON `flashcardReviews` (`reviewTime`)",

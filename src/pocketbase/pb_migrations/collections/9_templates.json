@@ -78,18 +78,17 @@
             "type": "relation"
         },
         {
-            "autogeneratePattern": "",
+            "cascadeDelete": false,
+            "collectionId": "_pb_users_auth_",
             "hidden": false,
-            "id": "text_author",
-            "max": 100,
-            "min": 1,
+            "id": "relation_author",
+            "maxSelect": 1,
+            "minSelect": 1,
             "name": "author",
-            "pattern": "",
             "presentable": false,
-            "primaryKey": false,
             "required": true,
             "system": false,
-            "type": "text"
+            "type": "relation"
         },
         {
             "hidden": false,
@@ -209,6 +208,7 @@
     ],
     "indexes": [
         "CREATE INDEX `idx_templates_user` ON `templates` (`user`)",
+        "CREATE INDEX `idx_templates_author` ON `templates` (`author`)",
         "CREATE INDEX `idx_templates_public` ON `templates` (`isPublic`)",
         "CREATE INDEX `idx_templates_language` ON `templates` (`nativeLanguage`, `learningLanguage`, `languageLevel`)"
     ],
