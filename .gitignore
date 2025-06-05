@@ -180,3 +180,6 @@ cython_debug/
 # PocketBase database
 src/pocketbase/pocketbase
 src/pocketbase/pb_data/
+pocketbase
+pb_data/
+flashcards.db

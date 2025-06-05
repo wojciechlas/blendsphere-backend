@@ -1,5 +1,7 @@
+from pocketbase.models import Record
 from pydantic_ai import Agent
-from string import Template
+
+from src.agent.request_builder import build_flashcard_request
 
 class FlashcardAgent:
 
@@ -30,46 +32,8 @@ class FlashcardAgent:
             system_prompt=system_prompt
         )
 
-        self.flashcard_template = Template("""
-        {
-            "nativeLanguage": "pl",
-            "learningLanguage": "en",
-            "languageLevel": "A1",
-            "example": {
-                "Word": "beat",
-                "Translation": "pokonać",
-                "Past forms": "beat, beaten"
-            },
-            "fields": [
-                {
-                    "id": 1,
-                    "type": "text",
-                    "language": "en",
-                    "label": "Word",
-                    "description": "Word in English",
-                    "inputs": $inputs
-                },
-                {
-                    "id": 2,
-                    "type": "text",
-                    "language": "pl",
-                    "label": "Translation",
-                    "description": "The translation of the word",
-                    "inputs": []
-                },
-                {
-                    "id": 3,
-                    "type": "text",
-                    "language": "en",
-                    "label": "Past forms",
-                    "description": "Past forms of the word"
-                    "inputs": []
-                }
-            ]
-        }""")
+    async def generate_flashcards(self, request, template: Record, template_fields):
+        flashcard_request = build_flashcard_request(template, template_fields)
+        response = await self.agent.run(flashcard_request.safe_substitute(inputs=request.words))
 
-    async def generate_flashcards(self, template):
-        print("pre-generation")
-        response = await self.agent.run(self.flashcard_template.safe_substitute(inputs=template.words))
-        print("post-generation")
         return response.output

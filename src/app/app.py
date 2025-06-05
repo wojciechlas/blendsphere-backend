@@ -1,10 +1,16 @@
 from fastapi import FastAPI
 from src.agent.flashcard_agent import FlashcardAgent
 from src.model.flashcard_request import FlashcardRequest
+from src.pb_utils.client import Client
 
 app = FastAPI()
 
 agent = FlashcardAgent()
+
+pocketbase_client = Client("http://127.0.0.1:8090/")
+user_data = pocketbase_client.collection("users").auth_with_password(
+    "test@test.pl", "test1234")
+print(f"User token valid: {user_data.is_valid}")
 
 @app.get("/")
 async def root():
@@ -14,6 +20,9 @@ async def root():
 async def health():
     return {"status": "ok"}
 
-@app.post("/flashcards")
+@app.post("/flashcards/generate")
 async def generate_flashcards(request: FlashcardRequest):
-    return await agent.generate_flashcards(request)
+    template = pocketbase_client.get_template(request.template)
+    template_fields = pocketbase_client.get_template_fields(request.template)
+
+    return await agent.generate_flashcards(request, template, template_fields)
