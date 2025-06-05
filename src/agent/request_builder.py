@@ -6,7 +6,7 @@ from pocketbase.models.utils import ListResult
 def __get_example_string__(template_fields: ListResult):
     example = ""
     for field in template_fields.items:
-        example = example + f"{field.label}: {field.example},\n"
+        example = example + f"{field.label}: {field.example},"
 
     return example
 
@@ -26,9 +26,9 @@ def __generate_fields__(template_fields: ListResult):
             label: {field.label},
             description: {field.description},
             inputs: {__get_inputs_string__(field)}
-        }},\n"""
+        }},"""
 
-    fields = fields + "]\n"
+    fields = fields + "]"
     return fields
 
 def build_flashcard_request(template, template_fields):
