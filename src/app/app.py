@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from src.agent.flashcard_agent import FlashcardAgent
 from src.model.flashcard_request import FlashcardRequest
 from src.pb_utils.client import Client
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
