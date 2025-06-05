@@ -2,7 +2,7 @@
 from pydantic import BaseModel
 from typing import List, Dict
 
-class FlashcardField(BaseModel):
+class Field(BaseModel):
     id: int
     type: str
     isInput: bool
@@ -10,23 +10,20 @@ class FlashcardField(BaseModel):
     label: str
     description: str
 
-class FlashcardStyles(BaseModel):
+class TemplateStyles(BaseModel):
     backgroundColor: str
     fontSize: int
     fontFamily: str
 
-class FlashcardTemplate(BaseModel):
+class Template(BaseModel):
     name: str
-    type: str
-    description: str
+    description: Optional[str] = None
     version: str
     author: str
-    tags: List[str]
     nativeLanguage: str
     learningLanguage: str
     languageLevel: str
-    example: Dict[str, str]
-    fields: List[FlashcardField]
-    styles: FlashcardStyles
-    front: str
-    back: str
+    frontLayout: str # HTML with placeholders
+    backLayout: str # HTML with placeholders
+    fields: List[Field]
+    styles: TemplateStyles
