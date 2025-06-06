@@ -19,6 +19,7 @@ print(f"User token valid: {user_data.is_valid}")
 async def root():
     return {"message": "Hello World"}
 
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
@@ -29,3 +30,17 @@ async def generate_flashcards(request: FlashcardRequest):
     template_fields = pocketbase_client.get_template_fields(request.template)
 
     return await agent.generate_flashcards(request, template, template_fields)
+
+
+from src.model.flashcard_review_request import FlashcardReviewRequest
+from src.fsrs.fsrs_manager import review_card
+
+@app.post("/flashcards/review")
+async def review_flashcard(request: FlashcardReviewRequest):
+    print(f"Received payload: {request.dict()}")
+
+    card, review_log = await review_card(request.flashcard_id, request.rating)
+    return {
+        "card": card.to_dict(),
+        "review_log": review_log.to_dict()
+    }
