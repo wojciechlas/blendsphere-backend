@@ -39,6 +39,7 @@ class FlashcardAgent:
         )
 
     async def generate_flashcards(self, request, template: Record, template_fields):
+        print(f"Generating flashcards for template: {template.name}, words to generate: {request.words}")
         flashcard_request = build_flashcard_request(template, template_fields)
         input_fields_dict = [field.dict() for field in request.inputFields]
         response = await self.agent.run(flashcard_request.safe_substitute(inputs=json.dumps(input_fields_dict)))
