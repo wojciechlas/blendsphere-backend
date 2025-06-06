@@ -1,19 +1,48 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
 from src.agent.flashcard_agent import FlashcardAgent
-from src.model.flashcard_request import FlashcardRequest
+from src.model.flashcard_generation import FlashcardGenerationRequest
 from src.pb_utils.client import Client
 from dotenv import load_dotenv
 
+import os
+
+# Load environment variables from .env file
 load_dotenv()
+
+pocketbase_url = os.getenv("POCKETBASE_URL", "http://localhost:8090")
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:8080"],  # Add your frontend URLs
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
 agent = FlashcardAgent()
 
-pocketbase_client = Client("http://127.0.0.1:8090/")
-user_data = pocketbase_client.collection("users").auth_with_password(
-    "test@test.pl", "test1234")
-print(f"User token valid: {user_data.is_valid}")
+def get_authenticated_client(authorization: Optional[str] = Header(None)) -> Client:
+    """Extract token from Authorization header and return authenticated PocketBase client"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+    
+    token = authorization.replace("Bearer ", "")
+    
+    # Connect to PocketBase and authenticate user
+    pocketbase_client = Client(pocketbase_url)
+    pocketbase_client.auth_store.save(token)
+    
+    # Validate token by trying to refresh it
+    try:
+        pocketbase_client.collection('users').auth_refresh()
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
+    
+    return pocketbase_client
 
 @app.get("/")
 async def root():
@@ -23,9 +52,13 @@ async def root():
 async def health():
     return {"status": "ok"}
 
-@app.post("/flashcards/generate")
-async def generate_flashcards(request: FlashcardRequest):
-    template = pocketbase_client.get_template(request.template)
-    template_fields = pocketbase_client.get_template_fields(request.template)
+@app.post("/api/flashcards/generate")
+async def generate_flashcards(
+    request: FlashcardGenerationRequest,
+    pocketbase_client: Client = Depends(get_authenticated_client)
+):
+    """Generate flashcards based on the provided template and input fields."""
+    template = pocketbase_client.get_template(request.templateId)
+    template_fields = pocketbase_client.get_template_fields(request.templateId)
 
     return await agent.generate_flashcards(request, template, template_fields)
