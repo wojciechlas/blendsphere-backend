@@ -21,7 +21,8 @@ def __generate_fields__(template_fields: ListResult):
             example: {field.example},
         }},\n"""
 
-    fields = fields + "]\n"
+
+    fields = fields + "]"
     return fields
 
 def build_flashcard_request(template, template_fields):

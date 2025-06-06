@@ -5,6 +5,7 @@ from src.agent.flashcard_agent import FlashcardAgent
 from src.model.flashcard_generation import FlashcardGenerationRequest
 from src.pb_utils.client import Client
 from dotenv import load_dotenv
+
 import os
 
 # Load environment variables from .env file
