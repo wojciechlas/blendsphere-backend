@@ -1,12 +1,30 @@
+import json
+import time
 from pocketbase.models import Record
+from pocketbase.models.utils import ListResult
 from pydantic_ai import Agent
+from typing import Optional, Any, Dict, cast
 
 from src.agent.request_builder import build_flashcard_request
-from src.model.flashcard_generation import FlashcardGenerationResponse
+from src.model.flashcard_generation import FlashcardGenerationRequest, FlashcardGenerationResponse
+
 
 class FlashcardAgent:
+    """
+    AI-powered flashcard generation agent using Google's Gemini model.
 
-    def __init__(self):
+    This class handles the generation of flashcards based on language learning templates.
+    It uses a structured prompt to generate contextually appropriate flashcard content
+    and logs all interactions for analytics and improvement purposes.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize the FlashcardAgent with the Gemini AI model and system prompt.
+
+        The system prompt is carefully crafted to guide the AI in generating
+        appropriate flashcard content based on language learning templates.
+        """
         system_prompt = f"""You are a language learning assistant. You will help students to learn a foreign language by providing flashcards.
             Your task is to create a list of flashcards based on the provided template.
             The template is in JSON format and contains the following fields:
@@ -24,24 +42,110 @@ class FlashcardAgent:
               - "description": description of the field, e.g. "The word or phrase", "The translation of the phrase", "An example sentence using the phrase". Describes what should be in the field's value
               - "example": example value of the field, e.g. "Ciao", "Cześć", "Ciao, come stai?"
             - "inputs": list of inputs, you should generate a flashcard for each input
-            Your response should be in JSON format and contain only the following fields:
-            - "flashcards": list of flashcards, each flashcard should contain a list of fields:
-              -fields: list of fields, each field has the following properties:
-                - "fieldId": id of the field (same as in the template)
-                - "value": value of the field, generated based on the template and inputs
+            Your response should be in JSON format and contain only the following fields:            - "fields": list of fields, each field has the following properties:
+              - "fieldId": id of the field (same as in the template)
+              - "flashcardId": id of the flashcard, same as flashcardId in the corresponding input
+              - "value": value of the field, generated based on the template and inputs
             """
-
         self.agent = Agent(
             model="google-gla:gemini-2.0-flash",
             result_type=FlashcardGenerationResponse,
-            system_prompt=system_prompt
+            system_prompt=system_prompt,
         )
 
-    async def generate_flashcards(self, request, template: Record, template_fields):
-        print(f"Generating flashcards for template: {template.name}, words to generate: {request.words}")
+    async def generate_flashcards(
+        self,
+        request: FlashcardGenerationRequest,
+        template: Record,
+        template_fields: ListResult,
+        pocketbase_client: Optional[Any] = None,
+    ) -> FlashcardGenerationResponse:
+        """
+        Generate flashcards using AI based on provided template and input fields.
+
+        This method orchestrates the complete flashcard generation process:
+        1. Builds a structured request from the template and fields
+        2. Sends the request to the AI model
+        3. Logs the interaction to PocketBase for analytics
+        4. Returns the generated flashcard content
+
+        Args:
+            request: The flashcard generation request containing template ID and input fields
+            template: The PocketBase template record containing flashcard structure
+            template_fields: List of template fields defining the flashcard schema
+            pocketbase_client: Optional authenticated PocketBase client for logging
+
+        Returns:
+            FlashcardGenerationResponse: Contains the generated flashcard fields and values
+
+        Raises:
+            Exception: If AI generation fails or other errors occur during processing
+        """  # Cast Record to Dict to help mypy understand it supports dictionary-like access
+        template_dict = cast(Dict[str, Any], template)
+
+        print(
+            f"Generating flashcards for template: {template.name}, input fields count: {len(request.inputFields)}"
+        )
         flashcard_request = build_flashcard_request(template, template_fields)
-        response = await self.agent.run(flashcard_request.safe_substitute(inputs=request.inputFields))
-        
-        print(f"Request: {flashcard_request.safe_substitute(inputs=request.inputFields)}")
-        print("Response:", response)
-        return response.output
+        input_fields_dict = [field.dict() for field in request.inputFields]
+        prompt_text = flashcard_request.safe_substitute(inputs=json.dumps(input_fields_dict))
+
+        print(f"Request: {prompt_text}")
+
+        # Record start time for response timing
+        start_time = time.time()
+
+        try:
+            response = await self.agent.run(prompt_text)
+
+            # Calculate response time in milliseconds
+            response_time_ms = int((time.time() - start_time) * 1000)
+
+            print("Response:", response)
+            # Log to PocketBase if client is provided
+            if pocketbase_client:
+                try:
+                    # Serialize response for logging
+                    if hasattr(response.output, "model_dump"):
+                        # Pydantic v2
+                        response_text = json.dumps(response.output.model_dump())
+                    elif hasattr(response.output, "dict"):
+                        # Pydantic v1
+                        response_text = json.dumps(response.output.dict())
+                    else:
+                        # Fallback to string representation
+                        response_text = str(response.output)
+
+                    pocketbase_client.log_ai_prompt(
+                        prompt=prompt_text,
+                        response=response_text,
+                        response_time=response_time_ms,
+                        prompt_type="FLASHCARD_GENERATION",
+                    )
+                    print(f"Logged AI prompt to PocketBase (response time: {response_time_ms}ms)")
+                except Exception as e:
+                    print(f"Failed to log AI prompt to PocketBase: {e}")
+
+            return response.output
+
+        except Exception as e:
+            # Calculate response time even for errors
+            response_time_ms = int((time.time() - start_time) * 1000)
+
+            # Log failed request if client is provided
+            if pocketbase_client:
+                try:
+                    pocketbase_client.log_ai_prompt(
+                        prompt=prompt_text,
+                        response=f"ERROR: {str(e)}",
+                        response_time=response_time_ms,
+                        prompt_type="FLASHCARD_GENERATION",
+                    )
+                    print(
+                        f"Logged failed AI prompt to PocketBase (response time: {response_time_ms}ms)"
+                    )
+                except Exception as log_error:
+                    print(f"Failed to log failed AI prompt to PocketBase: {log_error}")
+
+            # Re-raise the original exception
+            raise

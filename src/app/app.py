@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Header, HTTPException, Depends
+from fastapi import FastAPI, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional
+from typing import Optional, Dict, Any
 from src.agent.flashcard_agent import FlashcardAgent
-from src.model.flashcard_generation import FlashcardGenerationRequest
+from src.model.flashcard_generation import FlashcardGenerationRequest, FlashcardGenerationResponse
 from src.pb_utils.client import Client
 from dotenv import load_dotenv
 
@@ -26,39 +26,53 @@ app.add_middleware(
 agent = FlashcardAgent()
 
 def get_authenticated_client(authorization: Optional[str] = Header(None)) -> Client:
-    """Extract token from Authorization header and return authenticated PocketBase client"""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+    """
+    Extract token from Authorization header and return authenticated PocketBase client.
     
-    token = authorization.replace("Bearer ", "")
-    
-    # Connect to PocketBase and authenticate user
-    pocketbase_client = Client(pocketbase_url)
-    pocketbase_client.auth_store.save(token)
-    
-    # Validate token by trying to refresh it
-    try:
-        pocketbase_client.collection('users').auth_refresh()
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid authentication token")
-    
-    return pocketbase_client
+    Args:
+        authorization: Optional authorization header containing Bearer token
+        
+    Returns:
+        Client: Authenticated PocketBase client instance
+        
+    Raises:
+        HTTPException: If authentication fails or token is invalid
+    """
+    return Client.from_auth_header(pocketbase_url, authorization)
 
 @app.get("/")
-async def root():
+async def root() -> Dict[str, str]:
+    """Health check endpoint for the API root."""
     return {"message": "Hello World"}
 
 @app.get("/health")
-async def health():
+async def health() -> Dict[str, str]:
+    """Health check endpoint to verify API is running."""
     return {"status": "ok"}
 
 @app.post("/api/flashcards/generate")
 async def generate_flashcards(
     request: FlashcardGenerationRequest,
     pocketbase_client: Client = Depends(get_authenticated_client)
-):
-    """Generate flashcards based on the provided template and input fields."""
+) -> FlashcardGenerationResponse:
+    """
+    Generate flashcards based on the provided template and input fields.
+    
+    This endpoint uses AI to generate flashcard content based on a template
+    structure and user-provided input fields. The generation process includes
+    logging the request and response for analytics purposes.
+    
+    Args:
+        request: FlashcardGenerationRequest containing template ID and input fields
+        pocketbase_client: Authenticated PocketBase client injected via dependency
+        
+    Returns:
+        FlashcardGenerationResponse: Generated flashcard fields and content
+        
+    Raises:
+        HTTPException: If authentication fails, template not found, or generation fails
+    """
     template = pocketbase_client.get_template(request.templateId)
     template_fields = pocketbase_client.get_template_fields(request.templateId)
 
-    return await agent.generate_flashcards(request, template, template_fields)
+    return await agent.generate_flashcards(request, template, template_fields, pocketbase_client)
