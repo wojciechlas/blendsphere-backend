@@ -1,3 +1,4 @@
+import json
 from pocketbase.models import Record
 from pydantic_ai import Agent
 
@@ -25,10 +26,10 @@ class FlashcardAgent:
               - "example": example value of the field, e.g. "Ciao", "Cześć", "Ciao, come stai?"
             - "inputs": list of inputs, you should generate a flashcard for each input
             Your response should be in JSON format and contain only the following fields:
-            - "flashcards": list of flashcards, each flashcard should contain a list of fields:
-              -fields: list of fields, each field has the following properties:
-                - "fieldId": id of the field (same as in the template)
-                - "value": value of the field, generated based on the template and inputs
+            - "fields": list of fields, each field has the following properties:
+              - "fieldId": id of the field (same as in the template)
+              - "flashcardId": id of the flashcard, same as flashcardId in the corresponding input
+              - "value": value of the field, generated based on the template and inputs
             """
 
         self.agent = Agent(
@@ -39,8 +40,9 @@ class FlashcardAgent:
 
     async def generate_flashcards(self, request, template: Record, template_fields):
         flashcard_request = build_flashcard_request(template, template_fields)
-        response = await self.agent.run(flashcard_request.safe_substitute(inputs=request.inputFields))
+        input_fields_dict = [field.dict() for field in request.inputFields]
+        response = await self.agent.run(flashcard_request.safe_substitute(inputs=json.dumps(input_fields_dict)))
         
-        print(f"Request: {flashcard_request.safe_substitute(inputs=request.inputFields)}")
+        print(f"Request: {flashcard_request.safe_substitute(inputs=json.dumps(input_fields_dict))}")
         print("Response:", response)
         return response.output

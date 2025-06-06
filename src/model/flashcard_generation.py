@@ -3,10 +3,8 @@ from typing import List, Optional
 
 class GenerationFieldData(BaseModel):
     fieldId: str # foreign key to fields collection
+    flashcardId: Optional[int] = None  # optional, used for batch generation
     value: str # value of the field, e.g. "Ciao", "Cześć", "Ciao, come stai?"
-
-class GenerationFlashcard(BaseModel):
-    fields: List[GenerationFieldData]  # List of field values for the flashcard
 
 class FlashcardGenerationRequest(BaseModel):
     templateId: str
@@ -14,4 +12,4 @@ class FlashcardGenerationRequest(BaseModel):
     inputFields: List[GenerationFieldData]
 
 class FlashcardGenerationResponse(BaseModel):
-    flashcards: List[GenerationFlashcard]  # List of generated flashcards with field values
+    fields: List[GenerationFieldData]  # List of generated flashcards with field values
