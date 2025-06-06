@@ -80,12 +80,11 @@ class FlashcardAgent:
 
         Raises:
             Exception: If AI generation fails or other errors occur during processing
-        """
-        # Cast Record to Dict to help mypy understand it supports dictionary-like access
+        """  # Cast Record to Dict to help mypy understand it supports dictionary-like access
         template_dict = cast(Dict[str, Any], template)
 
         print(
-            f"Generating flashcards for template: {template_dict.get('name')}, input fields count: {len(request.inputFields)}"
+            f"Generating flashcards for template: {template.name}, input fields count: {len(request.inputFields)}"
         )
         flashcard_request = build_flashcard_request(template, template_fields)
         input_fields_dict = [field.dict() for field in request.inputFields]

@@ -29,9 +29,7 @@ def __generate_fields__(template_fields: ListResult) -> str:
     that can be used in the AI prompt for flashcard generation.
 
     Args:
-        template_fields: ListResult containing template field records
-
-    Returns:
+        template_fields: ListResult containing template field records    Returns:
         str: JSON-formatted string representation of all template fields
     """
     fields = "["
@@ -39,13 +37,13 @@ def __generate_fields__(template_fields: ListResult) -> str:
         fields = (
             fields
             + f"""{{
-            id: {field.get('id')},
-            type: {field.get('type')},
-            isInput: {field.get('is_input')},
-            language: {field.get('language')},
-            label: {field.get('label')},
-            description: {field.get('description')},
-            example: {field.get('example')},
+            id: {field.id},
+            type: {field.type},
+            isInput: {field.is_input},
+            language: {field.language},
+            label: {field.label},
+            description: {field.description},
+            example: {field.example},
         }},\n"""
         )
 
@@ -69,17 +67,16 @@ def build_flashcard_request(template: Record, template_fields: ListResult) -> Te
     Returns:
         Template: String template object with placeholder for inputs that can be
                  substituted with actual input data during generation
-    """
-    # Cast Record to Dict to help mypy understand it supports dictionary-like access
+    """  # Cast Record to Dict to help mypy understand it supports dictionary-like access
     template_dict = cast(Dict[str, Any], template)
 
     flashcard_template = f"""
             {{
-                "name": "{template_dict.get('name')}",
-                "description": "{template_dict.get('description')}",
-                "nativeLanguage": "{template_dict.get('native_language')}",
-                "learningLanguage": "{template_dict.get('learning_language')}",
-                "languageLevel": "{template_dict.get('language_level')}",
+                "name": "{template.name}",
+                "description": "{template.description}",
+                "nativeLanguage": "{template.native_language}",
+                "learningLanguage": "{template.learning_language}",
+                "languageLevel": "{template.language_level}",
                 "fields": {__generate_fields__(template_fields)},
                 "inputs": "$inputs"
             }}"""
