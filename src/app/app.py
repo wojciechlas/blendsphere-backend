@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, Dict, Any
 from src.agent.flashcard_agent import FlashcardAgent
 from src.model.flashcard_generation import FlashcardGenerationRequest, FlashcardGenerationResponse
+from src.model.flashcard_review_request import FlashcardReviewRequest
+from src.fsrs.fsrs_manager import review_card
 from src.pb_utils.client import Client
 from dotenv import load_dotenv
 
@@ -28,13 +30,13 @@ agent = FlashcardAgent()
 def get_authenticated_client(authorization: Optional[str] = Header(None)) -> Client:
     """
     Extract token from Authorization header and return authenticated PocketBase client.
-    
+
     Args:
         authorization: Optional authorization header containing Bearer token
-        
+
     Returns:
         Client: Authenticated PocketBase client instance
-        
+
     Raises:
         HTTPException: If authentication fails or token is invalid
     """
@@ -57,18 +59,18 @@ async def generate_flashcards(
 ) -> FlashcardGenerationResponse:
     """
     Generate flashcards based on the provided template and input fields.
-    
+
     This endpoint uses AI to generate flashcard content based on a template
     structure and user-provided input fields. The generation process includes
     logging the request and response for analytics purposes.
-    
+
     Args:
         request: FlashcardGenerationRequest containing template ID and input fields
         pocketbase_client: Authenticated PocketBase client injected via dependency
-        
+
     Returns:
         FlashcardGenerationResponse: Generated flashcard fields and content
-        
+
     Raises:
         HTTPException: If authentication fails, template not found, or generation fails
     """
@@ -76,3 +78,13 @@ async def generate_flashcards(
     template_fields = pocketbase_client.get_template_fields(request.templateId)
 
     return await agent.generate_flashcards(request, template, template_fields, pocketbase_client)
+
+@app.post("/flashcards/review")
+async def review_flashcard(request: FlashcardReviewRequest):
+    """Review a flashcard based on user rating."""
+
+    card, review_log = review_card(request.flashcard_id, request.rating)
+    return {
+        "card": card.to_dict(),
+        "review_log": review_log.to_dict()
+    }
