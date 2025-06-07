@@ -79,14 +79,6 @@ async def generate_flashcards(
 
     return await agent.generate_flashcards(request, template, template_fields, pocketbase_client)
 
-@app.post("/flashcards/generate")
-async def generate_flashcards(request: FlashcardRequest):
-    template = pocketbase_client.get_template(request.template)
-    template_fields = pocketbase_client.get_template_fields(request.template)
-
-    return await agent.generate_flashcards(request, template, template_fields)
-
-
 @app.post("/flashcards/review")
 async def review_flashcard(request: FlashcardReviewRequest):
     print(f"Received payload: {request.model_dump_json()}")
