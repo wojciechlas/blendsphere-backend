@@ -37,9 +37,9 @@ from src.fsrs.fsrs_manager import review_card
 
 @app.post("/flashcards/review")
 async def review_flashcard(request: FlashcardReviewRequest):
-    print(f"Received payload: {request.dict()}")
+    print(f"Received payload: {request.model_dump_json()}")
 
-    card, review_log = await review_card(request.flashcard_id, request.rating)
+    card, review_log = review_card(request.flashcard_id, request.rating)
     return {
         "card": card.to_dict(),
         "review_log": review_log.to_dict()

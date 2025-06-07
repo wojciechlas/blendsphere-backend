@@ -1,5 +1,5 @@
 
-from fsrs import Scheduler, Card, Rating, ReviewLog
+from fsrs import Scheduler, Card, State, Rating, ReviewLog
 from datetime import datetime, timezone
 from src.pb_utils.client import Client
 
@@ -9,52 +9,51 @@ user_data = pocketbase_client.collection("users").auth_with_password(
 
 scheduler = Scheduler()
 
-async def review_card(card_id: str, rating: int):
-    pb_card = pocketbase_client.get_flashcard(card_id) #todo extend pb model (missing fields: step) and check connectivity
+def review_card(card_id: str, rating: int):
+    pb_card = pocketbase_client.get_flashcard(card_id)
 
-    card = Card(card_id, pb_card.state, None, pb_card.stability, pb_card.difficulty,
-                datetime.fromisoformat(pb_card.nextReview), datetime.fromisoformat(pb_card.lastReview))
+    if pb_card.stability is None or pb_card.stability == 0:
+        pb_card.stability = 1.0
+    if pb_card.difficulty is None or pb_card.difficulty == 0:
+        pb_card.difficulty = 1.0
+    if pb_card.step is None or pb_card.step == 0:
+        pb_card.step = 0
+    card = Card(None, map_state(pb_card.state), None, pb_card.stability, pb_card.difficulty,
+                parse_date(pb_card.next_review), parse_date(pb_card.last_review))
 
     card, review_log = scheduler.review_card(card, Rating(rating))
 
-    pb_card.state = card.state
-    # pb_card.step = card.step
-    pb_card.stability = card.stability
-    pb_card.difficulty = card.difficulty
-    pb_card.lastReview = card.last_review.isoformat()
-    pb_card.nextReview = card.due
-    pocketbase_client.update_flashcard(card.id, pb_card.to_dict())
-
-# todo save review log to pocketbase - fix model?
-    # review_data = ReviewData(review_log.card_id, review_log.rating, review_log.review_datetime, review_log.review_duration)
-    # pocketbase_client.save_flashcard_review(card.id, review_data.to_dict())
-
+    updated_data = update_card_data(pb_card, card)
+    pocketbase_client.update_flashcard(card_id, updated_data)
     return card, review_log
 
 
-class ReviewData:
-    card_id: int
-    rating: int
-    review_datetime: datetime
-    review_duration: int | None
+def update_card_data(pb_card, card):
+    pb_card.state = card.state.name.upper()
+    pb_card.step = card.step
+    pb_card.stability = card.stability
+    pb_card.difficulty = card.difficulty
+    pb_card.last_review = card.last_review
+    pb_card.next_review = card.due
+    update_data = vars(pb_card)
+    for key, value in update_data.items():
+        if isinstance(value, datetime):
+            update_data[key] = value.isoformat()
+    return update_data
 
-    def __init__(
-            self,
-            card_id: int,
-            rating: int,
-            review_datetime: datetime,
-            review_duration: int | None = None,
-    ) -> None:
-        self.card_id = card_id
-        self.rating = rating
-        self.review_datetime = review_datetime
-        self.review_duration = review_duration
 
-    def to_dict(self):
-        return {
-            "review_data": {
-                "rating": self.rating,
-                "review_datetime": self.review_datetime.isoformat(),
-                "review_duration": self.review_duration
-            }
-        }
+def map_state(value: str):
+    if value.lower() == "new":
+        return State.Learning
+    try:
+        return State[value.lower().capitalize()]
+    except KeyError:
+        raise ValueError(f"'{value}' is not a valid state")
+
+
+def parse_date(date_str):
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return None
+
