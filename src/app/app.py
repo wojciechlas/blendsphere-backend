@@ -27,6 +27,7 @@ app.add_middleware(
 
 agent = FlashcardAgent()
 
+
 def get_authenticated_client(authorization: Optional[str] = Header(None)) -> Client:
     """
     Extract token from Authorization header and return authenticated PocketBase client.
@@ -42,20 +43,23 @@ def get_authenticated_client(authorization: Optional[str] = Header(None)) -> Cli
     """
     return Client.from_auth_header(pocketbase_url, authorization)
 
+
 @app.get("/")
 async def root() -> Dict[str, str]:
     """Health check endpoint for the API root."""
     return {"message": "Hello World"}
+
 
 @app.get("/health")
 async def health() -> Dict[str, str]:
     """Health check endpoint to verify API is running."""
     return {"status": "ok"}
 
+
 @app.post("/api/flashcards/generate")
 async def generate_flashcards(
     request: FlashcardGenerationRequest,
-    pocketbase_client: Client = Depends(get_authenticated_client)
+    pocketbase_client: Client = Depends(get_authenticated_client),
 ) -> FlashcardGenerationResponse:
     """
     Generate flashcards based on the provided template and input fields.
@@ -79,12 +83,12 @@ async def generate_flashcards(
 
     return await agent.generate_flashcards(request, template, template_fields, pocketbase_client)
 
+
 @app.post("/flashcards/review")
-async def review_flashcard(request: FlashcardReviewRequest):
+async def review_flashcard(
+    request: FlashcardReviewRequest, pocketbase_client: Client = Depends(get_authenticated_client)
+):
     """Review a flashcard based on user rating."""
 
-    card, review_log = review_card(request.flashcard_id, request.rating)
-    return {
-        "card": card.to_dict(),
-        "review_log": review_log.to_dict()
-    }
+    card, review_log = review_card(request.flashcard_id, request.rating, pocketbase_client)
+    return {"flashcard": card.to_dict(), "review_log": review_log.to_dict()}

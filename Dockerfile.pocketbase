@@ -48,7 +48,7 @@ EXPOSE ${POCKETBASE_PORT:-8090}
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=5 \
-    CMD curl -f http://localhost:8090/api/health || exit 1
+    CMD curl -f http://localhost:8090/api/health
 
 # Default command - run PocketBase directly with explicit data directory
 CMD ./pocketbase serve --http=0.0.0.0:${POCKETBASE_PORT:-8090} --dir=/app/src/pocketbase/pb_data

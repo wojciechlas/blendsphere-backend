@@ -15,7 +15,7 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+if ! command -v docker-compose &> /dev/null; then
     echo "❌ Docker Compose is not installed. Please install Docker Compose first."
     exit 1
 fi
@@ -33,6 +33,12 @@ if [ ! -f ".env" ]; then
         exit 1
     fi
 fi
+
+# Load environment variables from .env file
+echo "📦 Loading environment variables from .env file..."
+set -a
+source .env
+set +a
 
 echo "📋 Current Configuration:"
 echo "   FastAPI Port: ${FASTAPI_PORT:-8000}"

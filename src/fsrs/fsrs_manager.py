@@ -1,17 +1,13 @@
-
 from datetime import datetime
 
 from fsrs import Scheduler, Card, State, Rating
 
 from src.pb_utils.client import Client
 
-pocketbase_client = Client("http://127.0.0.1:8090/")
-user_data = pocketbase_client.collection("users").auth_with_password(
-    "test@test.pl", "test1234")
-
 scheduler = Scheduler()
 
-def review_card(card_id: str, rating: int):
+
+def review_card(card_id: str, rating: int, pocketbase_client: Client):
     """
     Review a flashcard calculate and update next review parameters and update it in PocketBase.
 
@@ -39,8 +35,15 @@ def initialize_card(pb_card):
         pb_card.difficulty = 1.0
     if pb_card.step is None or pb_card.step == 0:
         pb_card.step = 0
-    card = Card(None, map_state(pb_card.state), pb_card.step, pb_card.stability, pb_card.difficulty,
-                parse_date(pb_card.next_review), parse_date(pb_card.last_review))
+    card = Card(
+        None,
+        map_state(pb_card.state),
+        pb_card.step,
+        pb_card.stability,
+        pb_card.difficulty,
+        parse_date(pb_card.next_review),
+        parse_date(pb_card.last_review),
+    )
     return card
 
 
@@ -73,4 +76,3 @@ def parse_date(date_str):
         return datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
     except ValueError:
         return None
-
