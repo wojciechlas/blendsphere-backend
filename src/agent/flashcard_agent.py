@@ -1,5 +1,6 @@
 import json
 import time
+import os
 from pocketbase.models import Record
 from pocketbase.models.utils import ListResult
 from pydantic_ai import Agent
@@ -49,6 +50,7 @@ class FlashcardAgent:
             """
         self.agent = Agent(
             model="google-gla:gemini-2.0-flash",
+            api_key=os.getenv("GEMINI_API_KEY"),
             result_type=FlashcardGenerationResponse,
             system_prompt=system_prompt,
         )

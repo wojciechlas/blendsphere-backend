@@ -27,9 +27,13 @@ def main() -> None:
     # Get port from environment variable, default to 8000
     port: int = int(os.getenv("FASTAPI_PORT", "8000"))
 
+    # Check if running in Docker container (disable reload for production)
+    is_docker = os.path.exists("/.dockerenv")
+    reload_mode = not is_docker
+
     # Run the FastAPI app with uvicorn
-    uvicorn.run("src.app.app:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("src.app.app:app", host="0.0.0.0", port=port, reload=reload_mode)
 
 
 if __name__ == "__main__":
-    main()
+    print("Hello BlendSphere!")

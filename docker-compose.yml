@@ -1,0 +1,68 @@
+services:
+  # FastAPI Backend Service
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: blendsphere-fastapi
+    ports:
+      - "${FASTAPI_PORT:-8000}:8000"
+    environment:
+      - FASTAPI_PORT=8000
+      - POCKETBASE_URL=http://pocketbase:8090
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SENDER_ADDRESS=${SENDER_ADDRESS:-}
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    networks:
+      - blendsphere-network
+    restart: unless-stopped
+
+  # PocketBase Service
+  pocketbase:
+    build:
+      context: .
+      dockerfile: Dockerfile.pocketbase
+    container_name: blendsphere-pocketbase
+    ports:
+      - "${POCKETBASE_PORT:-8090}:8090"
+    environment:
+      - POCKETBASE_URL=http://0.0.0.0:8090
+      - POCKETBASE_SUPERUSER_EMAIL=${POCKETBASE_SUPERUSER_EMAIL:-admin@example.com}
+      - POCKETBASE_SUPERUSER_PASSWORD=${POCKETBASE_SUPERUSER_PASSWORD:-password12345}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SENDER_ADDRESS=${SENDER_ADDRESS:-}
+    volumes:
+      - pocketbase_data:/app/src/pocketbase/pb_data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+      start_period: 45s
+    networks:
+      - blendsphere-network
+    restart: unless-stopped
+
+volumes:
+  pocketbase_data:
+    driver: local
+
+networks:
+  blendsphere-network:
+    driver: bridge
