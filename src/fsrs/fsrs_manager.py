@@ -20,7 +20,7 @@ def review_card(card_id: str, rating: int):
         rating (int): Rating given to the flashcard (1-4).
     """
     pb_card = pocketbase_client.get_flashcard(card_id)
-    print(vars(pb_card))
+    print("Retrieved flashcard:", vars(pb_card))
 
     card = initialize_card(pb_card)
 
@@ -28,6 +28,7 @@ def review_card(card_id: str, rating: int):
 
     updated_data = update_card_data(pb_card, card)
     pocketbase_client.update_flashcard(card_id, updated_data)
+    print("Data to be updated in PocketBase:", updated_data)
     return card, review_log
 
 
@@ -49,8 +50,8 @@ def update_card_data(pb_card, card):
     pb_card.stability = card.stability
     pb_card.difficulty = card.difficulty
 
-    pb_card.last_review = card.last_review
-    pb_card.next_review = card.due
+    pb_card.lastReview = card.last_review
+    pb_card.nextReview = card.due
     update_data = vars(pb_card)
     for key, value in update_data.items():
         if isinstance(value, datetime):
