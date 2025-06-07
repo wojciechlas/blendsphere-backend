@@ -1,0 +1,66 @@
+version: '3.8'
+
+# Development version with volume mounts for hot-reloading
+services:
+  # FastAPI Backend Service (Development)
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: blendsphere-fastapi-dev
+    ports:
+      - "${FASTAPI_PORT:-8000}:8000"
+    environment:
+      - FASTAPI_PORT=8000
+      - POCKETBASE_URL=http://pocketbase:8090
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SENDER_ADDRESS=${SENDER_ADDRESS:-}
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    volumes:
+      # Mount source code for development
+      - ./src:/app/src
+      - ./main.py:/app/main.py
+    networks:
+      - blendsphere-network
+    restart: unless-stopped
+    command: ["python", "-m", "uvicorn", "src.app.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  # PocketBase Service (Development)
+  pocketbase:
+    build:
+      context: .
+      dockerfile: Dockerfile.pocketbase
+    container_name: blendsphere-pocketbase-dev
+    ports:
+      - "${POCKETBASE_PORT:-8090}:8090"
+    environment:
+      - POCKETBASE_URL=http://0.0.0.0:8090
+      - POCKETBASE_SUPERUSER_EMAIL=${POCKETBASE_SUPERUSER_EMAIL:-admin@example.com}
+      - POCKETBASE_SUPERUSER_PASSWORD=${POCKETBASE_SUPERUSER_PASSWORD:-password12345}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SENDER_ADDRESS=${SENDER_ADDRESS:-}
+    volumes:
+      - pocketbase_data:/app/src/pocketbase/pb_data
+      # Mount PocketBase configuration for development
+      - ./src/pocketbase:/app/src/pocketbase
+    networks:
+      - blendsphere-network
+    restart: unless-stopped
+
+volumes:
+  pocketbase_data:
+    driver: local
+
+networks:
+  blendsphere-network:
+    driver: bridge

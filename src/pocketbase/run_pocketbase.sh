@@ -9,7 +9,14 @@ set -e
 load_env_file() {
     local env_file="../../.env"
     
-    # Check if .env file exists in the expected location
+    # Check if running in Docker container (environment variables should be passed directly)
+    if [ -f "/.dockerenv" ]; then
+        echo "Running in Docker container, using environment variables passed by Docker..."
+        echo "✓ Environment variables loaded from Docker"
+        return 0
+    fi
+    
+    # Check if .env file exists in the expected location (for local development)
     if [ -f "$env_file" ]; then
         echo "Loading environment variables from $env_file..."
         

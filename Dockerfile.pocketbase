@@ -1,0 +1,54 @@
+# Optimized Dockerfile for PocketBase service only
+# Multi-stage build to minimize image size
+
+# Build stage - download PocketBase
+FROM alpine:3.19 AS builder
+
+# Install dependencies for downloading
+RUN apk add --no-cache wget unzip
+
+# Download and install PocketBase
+WORKDIR /tmp
+RUN POCKETBASE_VERSION="0.28.2" && \
+    DOWNLOAD_URL="https://github.com/pocketbase/pocketbase/releases/download/v${POCKETBASE_VERSION}/pocketbase_${POCKETBASE_VERSION}_linux_amd64.zip" && \
+    wget -O pocketbase.zip "${DOWNLOAD_URL}" && \
+    unzip pocketbase.zip && \
+    chmod +x pocketbase
+
+# Runtime stage - minimal Alpine image
+FROM alpine:3.19 AS runtime
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    curl \
+    bash \
+    ca-certificates
+
+# Create a non-root user
+RUN adduser -D -u 1000 appuser
+
+# Create necessary directories
+RUN mkdir -p /app/src/pocketbase/pb_data && \
+    chown -R appuser:appuser /app
+
+# Copy PocketBase binary from builder stage
+COPY --from=builder /tmp/pocketbase /app/src/pocketbase/pocketbase
+
+# Copy only necessary PocketBase configuration files (not scripts)
+COPY --chown=appuser:appuser src/pocketbase/pb_migrations/ /app/src/pocketbase/pb_migrations/
+
+# Switch to non-root user
+USER appuser
+
+# Set working directory
+WORKDIR /app/src/pocketbase
+
+# Expose port for PocketBase
+EXPOSE ${POCKETBASE_PORT:-8090}
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=5 \
+    CMD curl -f http://localhost:8090/api/health || exit 1
+
+# Default command - run PocketBase directly with explicit data directory
+CMD ./pocketbase serve --http=0.0.0.0:${POCKETBASE_PORT:-8090} --dir=/app/src/pocketbase/pb_data
