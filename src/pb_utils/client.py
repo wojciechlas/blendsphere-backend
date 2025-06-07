@@ -1,9 +1,9 @@
+from typing import Optional, Any
+
+from fastapi import HTTPException
 from pocketbase import PocketBase
 from pocketbase.models import Record
 from pocketbase.models.utils import ListResult
-import time
-from typing import Optional, Dict, Any
-from fastapi import HTTPException
 
 
 class Client(PocketBase):
@@ -145,21 +145,30 @@ class Client(PocketBase):
 
         return self.collection("aiPrompts").create(data)
 
+    def get_flashcard(self, flashcard_id) -> Record:
+        """
+        Retrieve a single flashcard record by ID.
 
-    def get_template(self, template_id):
-        return self.collection("templates").get_one(template_id)
+        Args:
+            flashcard_id: Unique identifier for the flashcard
 
-    def get_template_fields(self, field_id):
-        return self.collection("fields").get_list(query_params = {"filter": f"template='{field_id}'"})
+        Returns:
+            Record: The flashcard record from PocketBase
 
-    def get_flashcard(self, flashcard_id):
+        Raises:
+            Exception: If flashcard not found or access denied
+        """
         return self.collection("flashcards").get_one(flashcard_id)
 
     def update_flashcard(self, flashcard_id, data):
-        return self.collection("flashcards").update(flashcard_id, data)
+        """
+        Update a flashcard with data by flashcard_id.
 
-    def save_flashcard_review(self, flashcard_id, review_data):
-        return self.collection("flashcard_reviews").create({
-            "flashcard": flashcard_id,
-            **review_data
-        })
+        Args:
+            flashcard_id: Unique identifier for the flashcard
+            data: Data to update the flashcard with
+
+        Raises:
+            Exception: If flashcard not found or access denied
+        """
+        return self.collection("flashcards").update(flashcard_id, data)

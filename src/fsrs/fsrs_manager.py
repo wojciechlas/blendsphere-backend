@@ -1,6 +1,8 @@
 
-from fsrs import Scheduler, Card, State, Rating, ReviewLog
-from datetime import datetime, timezone
+from datetime import datetime
+
+from fsrs import Scheduler, Card, State, Rating
+
 from src.pb_utils.client import Client
 
 pocketbase_client = Client("http://127.0.0.1:8090/")
@@ -10,7 +12,13 @@ user_data = pocketbase_client.collection("users").auth_with_password(
 scheduler = Scheduler()
 
 def review_card(card_id: str, rating: int):
-    """Review a flashcard calculate and update next review parameters in PocketBase."""
+    """
+    Review a flashcard calculate and update next review parameters and update it in PocketBase.
+
+    Args:
+        card_id (str): Unique identifier for the flashcard.
+        rating (int): Rating given to the flashcard (1-4).
+    """
     pb_card = pocketbase_client.get_flashcard(card_id)
 
     if pb_card.stability is None or pb_card.stability == 0:
