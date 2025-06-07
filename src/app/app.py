@@ -81,7 +81,7 @@ async def generate_flashcards(
 
 @app.post("/flashcards/review")
 async def review_flashcard(request: FlashcardReviewRequest):
-    print(f"Received payload: {request.model_dump_json()}")
+    """Review a flashcard based on user rating."""
 
     card, review_log = review_card(request.flashcard_id, request.rating)
     return {

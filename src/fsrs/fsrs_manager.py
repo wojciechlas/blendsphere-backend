@@ -10,6 +10,7 @@ user_data = pocketbase_client.collection("users").auth_with_password(
 scheduler = Scheduler()
 
 def review_card(card_id: str, rating: int):
+    """Review a flashcard calculate and update next review parameters in PocketBase."""
     pb_card = pocketbase_client.get_flashcard(card_id)
 
     if pb_card.stability is None or pb_card.stability == 0:
