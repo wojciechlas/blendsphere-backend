@@ -1,0 +1,69 @@
+# Optimized Dockerfile for FastAPI service only
+# Multi-stage build to minimize image size
+
+# Build stage - contains build dependencies
+FROM python:3.12-slim AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Install uv for dependency management
+RUN pip install --no-cache-dir uv
+
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
+
+# Install Python dependencies in a virtual environment
+RUN uv sync --frozen --no-dev
+
+# Runtime stage - minimal runtime dependencies
+FROM python:3.12-slim AS runtime
+
+# Set working directory
+WORKDIR /app
+
+# Install only runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create a non-root user
+RUN useradd -m -u 1000 appuser
+
+# Copy the virtual environment from builder stage
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy application code (only necessary files for FastAPI)
+COPY --chown=appuser:appuser main.py ./
+COPY --chown=appuser:appuser src/app/ ./src/app/
+COPY --chown=appuser:appuser src/agent/ ./src/agent/
+COPY --chown=appuser:appuser src/model/ ./src/model/
+COPY --chown=appuser:appuser src/pb_utils/ ./src/pb_utils/
+COPY --chown=appuser:appuser src/__init__.py ./src/__init__.py
+
+# Ensure proper ownership
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Add virtual environment to PATH
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Expose port for FastAPI
+EXPOSE ${FASTAPI_PORT:-8000}
+
+# Health check - use dedicated health endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Default command - run FastAPI with uvicorn
+CMD uvicorn src.app.app:app --host 0.0.0.0 --port ${FASTAPI_PORT:-8000}
